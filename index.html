@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GRIND — Office Calisthenics</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GRIND">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="description" content="28-day office calisthenics tracker">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a;--surface:#111111;--surface2:#1a1a1a;--border:#222222;
+    --accent:#c8f135;--accent2:#f1c135;--text:#f0f0f0;--muted:#666;
+    --rest:#1e2a1e;--rest-text:#6dbf6d;--done:#141f0a;--done-border:#c8f135;--red:#ff4444;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:80px;padding-top:env(safe-area-inset-top);}
+
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;position:sticky;top:0;z-index:100;}
+  .header-inner{max-width:600px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:14px 0;}
+  .logo-mark{width:40px;height:40px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .logo-mark svg{width:22px;height:22px;}
+  .logo-text{line-height:1;}
+  .logo-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:2px;color:var(--accent);}
+  .logo-sub{font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;font-family:'DM Mono',monospace;}
+  .month-label{margin-left:auto;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);text-align:right;}
+  .bell-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:border-color 0.2s;}
+  .bell-btn.active{border-color:var(--accent);}
+  .bell-btn svg{width:16px;height:16px;color:var(--muted);transition:color 0.2s;}
+  .bell-btn.active svg{color:var(--accent);}
+
+  .stats-bar{background:var(--surface);border-bottom:2px solid var(--accent);padding:0 20px;}
+  .stats-inner{max-width:600px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);}
+  .stat{padding:14px 10px;text-align:center;border-right:1px solid var(--border);}
+  .stat:last-child{border-right:none;}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--accent);line-height:1;}
+  .stat-label{font-size:9px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-top:3px;}
+
+  .progress-wrap{max-width:600px;margin:0 auto;padding:14px 20px 0;}
+  .progress-header{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;margin-bottom:6px;}
+  .progress-bar-track{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+  .progress-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:3px;transition:width 0.6s cubic-bezier(.4,0,.2,1);}
+
+  .notif-panel{max-width:600px;margin:14px auto 0;padding:0 20px;display:none;}
+  .notif-panel.open{display:block;}
+  .notif-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+  .notif-title{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:2px;color:var(--accent);margin-bottom:12px;}
+  .notif-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .notif-label{font-size:13px;flex:1;}
+  .notif-time{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;outline:none;width:110px;transition:border-color 0.2s;}
+  .notif-time:focus{border-color:var(--accent);}
+  .notif-toggle{position:relative;width:42px;height:24px;flex-shrink:0;}
+  .notif-toggle input{opacity:0;width:0;height:0;}
+  .notif-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:background 0.2s;}
+  .notif-slider:before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:var(--muted);top:3px;left:3px;transition:transform 0.2s,background 0.2s;}
+  .notif-toggle input:checked + .notif-slider{background:#1e2d0a;}
+  .notif-toggle input:checked + .notif-slider:before{transform:translateX(18px);background:var(--accent);}
+  .btn-save-notif{width:100%;padding:11px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;cursor:pointer;margin-top:4px;}
+  .notif-status{font-size:11px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:8px;text-align:center;}
+
+  main{max-width:600px;margin:0 auto;padding:20px 20px 0;}
+  .section-title{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:3px;color:var(--muted);margin-bottom:12px;margin-top:24px;}
+
+  .day-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:10px;overflow:hidden;transition:border-color 0.2s;}
+  .day-card.is-done{background:var(--done);border-color:var(--done-border);}
+  .day-card.is-rest{background:var(--rest);border-color:#2a3d2a;}
+  .day-card.is-today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+  .day-header{display:flex;align-items:center;padding:14px 16px;gap:12px;cursor:pointer;user-select:none;}
+  .day-badge{width:38px;height:38px;border-radius:8px;background:var(--surface2);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--border);}
+  .day-card.is-today .day-badge{background:var(--accent);border-color:var(--accent);}
+  .day-card.is-today .day-badge .day-num,.day-card.is-today .day-badge .day-name{color:#000;}
+  .day-card.is-done .day-badge{background:#1e2d0a;border-color:var(--done-border);}
+  .day-card.is-rest .day-badge{background:#182418;border-color:#3a4d3a;}
+  .day-num{font-family:'Bebas Neue',sans-serif;font-size:17px;line-height:1;color:var(--text);}
+  .day-name{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-family:'DM Mono',monospace;}
+  .day-info{flex:1;}
+  .day-title{font-weight:600;font-size:14px;color:var(--text);}
+  .day-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'DM Mono',monospace;}
+  .day-card.is-done .day-title{color:var(--accent);}
+  .day-card.is-rest .day-title{color:var(--rest-text);}
+  .day-status{display:flex;align-items:center;gap:6px;}
+  .check-icon{width:24px;height:24px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+  .day-card.is-done .check-icon{background:var(--accent);border-color:var(--accent);}
+  .check-icon svg{width:12px;height:12px;opacity:0;}
+  .day-card.is-done .check-icon svg{opacity:1;}
+  .chevron{width:16px;height:16px;color:var(--muted);transition:transform 0.2s;flex-shrink:0;}
+  .day-card.is-rest .chevron{opacity:0;pointer-events:none;}
+  .today-pill{font-size:9px;background:var(--accent);color:#000;border-radius:4px;padding:2px 6px;font-family:'DM Mono',monospace;letter-spacing:1px;font-weight:600;}
+
+  .log-panel{overflow:hidden;max-height:0;transition:max-height 0.35s cubic-bezier(.4,0,.2,1);}
+  .log-panel.open{max-height:600px;}
+  .log-inner{padding:0 16px 16px;border-top:1px solid var(--border);}
+  .exercises-list{margin:12px 0;}
+  .ex-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+  .ex-row:last-child{border-bottom:none;}
+  .ex-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
+  .ex-name{flex:1;font-size:13px;font-weight:500;}
+  .ex-target{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);flex-shrink:0;}
+  .log-form{margin-top:12px;}
+  .log-form-title{font-size:11px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-family:'DM Mono',monospace;margin-bottom:10px;}
+  .input-rows{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .input-row{display:flex;align-items:center;gap:8px;}
+  .input-label{font-size:12px;flex:1;color:var(--text);}
+  .input-field{width:72px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:14px;padding:7px 10px;text-align:center;outline:none;transition:border-color 0.2s;}
+  .input-field:focus{border-color:var(--accent);}
+  .btn-save{width:100%;padding:12px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:2px;cursor:pointer;transition:opacity 0.15s;margin-bottom:8px;}
+  .btn-save:active{opacity:0.8;}
+  .btn-clear{width:100%;padding:9px;background:transparent;color:var(--red);border:1px solid var(--red);border-radius:10px;font-size:12px;letter-spacing:1px;cursor:pointer;font-family:'DM Mono',monospace;}
+  .logged-summary{background:var(--done);border:1px solid var(--done-border);border-radius:8px;padding:10px 12px;font-size:12px;font-family:'DM Mono',monospace;color:var(--accent);margin-top:10px;line-height:1.7;}
+  .reset-btn{display:block;margin:30px auto 0;background:transparent;border:1px solid var(--border);color:var(--muted);font-size:11px;padding:8px 20px;border-radius:6px;cursor:pointer;font-family:'DM Mono',monospace;letter-spacing:1px;}
+  .today-anchor{scroll-margin-top:130px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 4v6m0 4v6M18 4v6m0 4v6M2 9h4m12 0h4M2 15h4m12 0h4M10 6l2 2-2 2M14 6l-2 2 2 2"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-title">GRIND</div>
+      <div class="logo-sub">Office Calisthenics</div>
+    </div>
+    <div class="month-label">
+      <div id="monthName" style="font-size:13px;color:var(--text);font-weight:500;"></div>
+      <div id="yearName"></div>
+    </div>
+    <button class="bell-btn" id="bellBtn" onclick="toggleNotifPanel()" title="Set reminders">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+      </svg>
+    </button>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-num" id="statDone">0</div><div class="stat-label">Done</div></div>
+    <div class="stat"><div class="stat-num" id="statLeft">0</div><div class="stat-label">Left</div></div>
+    <div class="stat"><div class="stat-num" id="statReps">0</div><div class="stat-label">Total Reps</div></div>
+    <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Streak</div></div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-header"><span>Monthly Progress</span><span id="progressPct">0%</span></div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+</div>
+
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-card">
+    <div class="notif-title">🔔 Daily Reminders</div>
+    <div class="notif-row">
+      <span class="notif-label">Morning reminder</span>
+      <input type="time" class="notif-time" id="time1" value="08:00">
+      <label class="notif-toggle"><input type="checkbox" id="toggle1"><span class="notif-slider"></span></label>
+    </div>
+    <div class="notif-row">
+      <span class="notif-label">Lunch reminder</span>
+      <input type="time" class="notif-time" id="time2" value="12:30">
+      <label class="notif-toggle"><input type="checkbox" id="toggle2"><span class="notif-slider"></span></label>
+    </div>
+    <div class="notif-row">
+      <span class="notif-label">Evening reminder</span>
+      <input type="time" class="notif-time" id="time3" value="17:00">
+      <label class="notif-toggle"><input type="checkbox" id="toggle3"><span class="notif-slider"></span></label>
+    </div>
+    <button class="btn-save-notif" onclick="saveNotifSettings()">SAVE REMINDERS</button>
+    <div class="notif-status" id="notifStatus"></div>
+  </div>
+</div>
+
+<main id="main"></main>
+<button class="reset-btn" onclick="resetAll()">&#9888; Reset All Data</button>
+
+<script>
+// ── ICON GENERATOR ────────────────────────────────────────────────────────────
+function makeIconSVG(size) {
+  const r = Math.round(size * 0.22);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><rect width="${size}" height="${size}" rx="${r}" fill="#0a0a0a"/><rect width="${size}" height="${size}" rx="${r}" fill="#c8f135" opacity="0.1"/><text x="50%" y="52%" font-size="${Math.round(size*0.52)}" font-family="Arial Black,Impact,sans-serif" font-weight="900" fill="#c8f135" text-anchor="middle" dominant-baseline="middle">G</text><text x="50%" y="83%" font-size="${Math.round(size*0.13)}" font-family="Arial,sans-serif" font-weight="700" fill="#c8f135" text-anchor="middle" letter-spacing="${Math.round(size*0.04)}">GRIND</text></svg>`;
+}
+function makeIconURL(size) {
+  return 'data:image/svg+xml;base64,' + btoa(makeIconSVG(size));
+}
+
+// Inject icons into <head>
+(function() {
+  var head = document.head;
+  // Apple touch icon
+  var atl = document.createElement('link');
+  atl.rel = 'apple-touch-icon'; atl.setAttribute('sizes','180x180'); atl.href = makeIconURL(180);
+  head.appendChild(atl);
+  // Favicon
+  var fav = document.createElement('link');
+  fav.rel = 'icon'; fav.type = 'image/svg+xml'; fav.href = makeIconURL(64);
+  head.appendChild(fav);
+  // Web App Manifest (dynamic blob)
+  try {
+    var manifest = {
+      name:"GRIND \u2014 Office Calisthenics",
+      short_name:"GRIND",
+      description:"28-day office calisthenics tracker",
+      start_url:"./",
+      display:"standalone",
+      background_color:"#0a0a0a",
+      theme_color:"#0a0a0a",
+      orientation:"portrait-primary",
+      icons:[
+        {src:makeIconURL(192),sizes:"192x192",type:"image/svg+xml",purpose:"any maskable"},
+        {src:makeIconURL(512),sizes:"512x512",type:"image/svg+xml",purpose:"any maskable"}
+      ]
+    };
+    var blob = new Blob([JSON.stringify(manifest)],{type:'application/manifest+json'});
+    var ml = document.createElement('link');
+    ml.rel = 'manifest'; ml.href = URL.createObjectURL(blob);
+    head.appendChild(ml);
+  } catch(e) {}
+})();
+
+// ── SERVICE WORKER ────────────────────────────────────────────────────────────
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+  var code = [
+    "const CACHE='grind-v1';",
+    "self.addEventListener('install',()=>self.skipWaiting());",
+    "self.addEventListener('activate',e=>e.waitUntil(clients.claim()));",
+    "self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>new Response(''))));",
+    "self.addEventListener('notificationclick',e=>{",
+    "  e.notification.close();",
+    "  e.waitUntil(clients.matchAll({type:'window'}).then(list=>{",
+    "    if(list.length)return list[0].focus();",
+    "    return clients.openWindow('./');",
+    "  }));",
+    "});"
+  ].join('\n');
+  try {
+    var blob = new Blob([code],{type:'application/javascript'});
+    navigator.serviceWorker.register(URL.createObjectURL(blob),{scope:'./'}).catch(function(){});
+  } catch(e) {}
+})();
+
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────────
+var notifSettings = (function() {
+  try { return JSON.parse(localStorage.getItem('grind_notif')) || null; } catch(e){ return null; }
+})() || {slots:[{time:'08:00',on:false},{time:'12:30',on:false},{time:'17:00',on:false}]};
+
+var notifTimers = [];
+
+function loadNotifUI() {
+  [1,2,3].forEach(function(n,i) {
+    var slot = notifSettings.slots[i];
+    document.getElementById('time'+n).value = slot.time;
+    document.getElementById('toggle'+n).checked = slot.on;
+  });
+  updateBell();
+}
+
+function toggleNotifPanel() {
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+
+function updateBell() {
+  var anyOn = notifSettings.slots.some(function(s){ return s.on; });
+  document.getElementById('bellBtn').classList.toggle('active', anyOn);
+}
+
+function saveNotifSettings() {
+  var status = document.getElementById('notifStatus');
+  notifSettings.slots = [1,2,3].map(function(n,i) {
+    return {
+      time: document.getElementById('time'+n).value,
+      on:   document.getElementById('toggle'+n).checked
+    };
+  });
+  localStorage.setItem('grind_notif', JSON.stringify(notifSettings));
+  updateBell();
+
+  var anyOn = notifSettings.slots.some(function(s){ return s.on; });
+  if (!anyOn) {
+    clearNotifTimers();
+    status.textContent = 'All reminders off.';
+    return;
+  }
+  if (!('Notification' in window)) {
+    status.textContent = 'Notifications not supported on this browser.';
+    return;
+  }
+  if (Notification.permission === 'granted') {
+    scheduleNotifs();
+    var active = notifSettings.slots.filter(function(s){return s.on;}).map(function(s){return s.time;}).join(', ');
+    status.textContent = 'Reminders set for ' + active;
+  } else {
+    Notification.requestPermission().then(function(perm) {
+      if (perm === 'granted') {
+        scheduleNotifs();
+        var active = notifSettings.slots.filter(function(s){return s.on;}).map(function(s){return s.time;}).join(', ');
+        status.textContent = 'Reminders set for ' + active;
+      } else {
+        status.textContent = 'Permission denied. Enable notifications in your browser settings for this site.';
+      }
+    });
+  }
+}
+
+function clearNotifTimers() {
+  notifTimers.forEach(function(t){ clearTimeout(t); });
+  notifTimers = [];
+}
+
+function scheduleNotifs() {
+  clearNotifTimers();
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+  notifSettings.slots.forEach(function(slot) {
+    if (!slot.on) return;
+    var parts = slot.time.split(':');
+    var h = parseInt(parts[0]), m = parseInt(parts[1]);
+    var now2 = new Date();
+    var fire = new Date(now2.getFullYear(), now2.getMonth(), now2.getDate(), h, m, 0, 0);
+    if (fire <= now2) fire.setDate(fire.getDate() + 1);
+    var ms = fire - now2;
+
+    var t = setTimeout(function() {
+      var todayIdx = -1;
+      PLAN.forEach(function(_, i){ if(isToday(i)) todayIdx = i; });
+      var todayDone = todayIdx >= 0 && !PLAN[todayIdx].rest && logs[todayIdx];
+      if (!todayDone) {
+        var label = todayIdx >= 0 && !PLAN[todayIdx].rest ? PLAN[todayIdx].label : "today's workout";
+        try {
+          new Notification('GRIND — Time to Move!', {
+            body: "Don't skip " + label + ". Let's go!",
+            icon: makeIconURL(192),
+            tag: 'grind-reminder',
+            silent: false
+          });
+        } catch(e) {}
+      }
+      scheduleNotifs();
+    }, ms);
+    notifTimers.push(t);
+  });
+}
+
+if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+  scheduleNotifs();
+}
+
+// ── PLAN ──────────────────────────────────────────────────────────────────────
+var PLAN = [
+  {label:"Push-Up Primer",    exercises:[{icon:"💪",name:"Push-Ups",target:40},{icon:"🪑",name:"Chair Dips",target:25},{icon:"🧘",name:"Plank Hold",target:40}]},
+  {label:"Core Ignition",     exercises:[{icon:"🦵",name:"Desk Squats",target:40},{icon:"⬆️",name:"Calf Raises",target:50},{icon:"🧘",name:"Hollow Body",target:35}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Upper Push",        exercises:[{icon:"💪",name:"Push-Ups",target:45},{icon:"🤲",name:"Wide Push-Ups",target:25},{icon:"🪑",name:"Chair Dips",target:30}]},
+  {label:"Leg Blast",         exercises:[{icon:"🦵",name:"Desk Squats",target:45},{icon:"🦅",name:"Lunges",target:30},{icon:"⬆️",name:"Calf Raises",target:55}]},
+  {label:"Core & Balance",    exercises:[{icon:"🧘",name:"Plank Hold",target:50},{icon:"🔄",name:"Side Plank (each)",target:35},{icon:"🦵",name:"Single-Leg Stand",target:45}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Push Power",        exercises:[{icon:"💪",name:"Push-Ups",target:50},{icon:"🤲",name:"Diamond Push-Ups",target:20},{icon:"🪑",name:"Chair Dips",target:30}]},
+  {label:"Squat Ladder",      exercises:[{icon:"🦵",name:"Desk Squats",target:50},{icon:"🦅",name:"Reverse Lunges",target:30},{icon:"⬆️",name:"Calf Raises",target:60}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Full Upper",        exercises:[{icon:"💪",name:"Push-Ups",target:55},{icon:"🤲",name:"Wide Push-Ups",target:25},{icon:"🪑",name:"Chair Dips",target:32},{icon:"🧘",name:"Plank Hold",target:50}]},
+  {label:"Legs & Core",       exercises:[{icon:"🦵",name:"Desk Squats",target:55},{icon:"🦅",name:"Lunges",target:32},{icon:"🧘",name:"Hollow Body",target:40}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Endurance Push",    exercises:[{icon:"💪",name:"Push-Ups",target:60},{icon:"🤲",name:"Diamond Push-Ups",target:22},{icon:"🪑",name:"Chair Dips",target:35}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Push Max",          exercises:[{icon:"💪",name:"Push-Ups",target:65},{icon:"🤲",name:"Wide Push-Ups",target:28},{icon:"🤲",name:"Diamond Push-Ups",target:22}]},
+  {label:"Leg Strength",      exercises:[{icon:"🦵",name:"Desk Squats",target:60},{icon:"🦅",name:"Reverse Lunges",target:34},{icon:"⬆️",name:"Calf Raises",target:65}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Upper + Core",      exercises:[{icon:"💪",name:"Push-Ups",target:70},{icon:"🪑",name:"Chair Dips",target:35},{icon:"🧘",name:"Plank Hold",target:60},{icon:"🔄",name:"Side Plank (each)",target:40}]},
+  {label:"Power Legs",        exercises:[{icon:"🦵",name:"Desk Squats",target:65},{icon:"🦅",name:"Lunges",target:36},{icon:"🧘",name:"Hollow Body",target:45}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Push Endurance",    exercises:[{icon:"💪",name:"Push-Ups",target:75},{icon:"🤲",name:"Wide Push-Ups",target:30},{icon:"🪑",name:"Chair Dips",target:38}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Peak Push",         exercises:[{icon:"💪",name:"Push-Ups",target:80},{icon:"🤲",name:"Diamond Push-Ups",target:28},{icon:"🤲",name:"Wide Push-Ups",target:32}]},
+  {label:"Peak Legs",         exercises:[{icon:"🦵",name:"Desk Squats",target:75},{icon:"🦅",name:"Reverse Lunges",target:38},{icon:"⬆️",name:"Calf Raises",target:70}]},
+  {label:"REST DAY",          rest:true},
+  {label:"Full Body Finish",  exercises:[{icon:"💪",name:"Push-Ups",target:85},{icon:"🪑",name:"Chair Dips",target:40},{icon:"🦵",name:"Desk Squats",target:75},{icon:"🧘",name:"Plank Hold",target:70}]},
+  {label:"REST DAY",          rest:true},
+  {label:"FINAL PUSH 🏆",     exercises:[{icon:"💪",name:"Push-Ups",target:100},{icon:"🤲",name:"Diamond Push-Ups",target:30},{icon:"🪑",name:"Chair Dips",target:45},{icon:"🧘",name:"Plank Hold",target:75}]}
+];
+
+// ── STORAGE ───────────────────────────────────────────────────────────────────
+function storageGet(key, def) { try { var v=localStorage.getItem(key); return v!==null?JSON.parse(v):def; } catch(e){ return def; } }
+function storageSet(key,val)  { localStorage.setItem(key,JSON.stringify(val)); }
+var logs = storageGet('grind_logs', {});
+
+// ── DATES ─────────────────────────────────────────────────────────────────────
+var now       = new Date();
+var startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+var MONTHS    = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+var DAYS      = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+document.getElementById('monthName').textContent = MONTHS[now.getMonth()];
+document.getElementById('yearName').textContent  = now.getFullYear();
+
+function getDate(idx) { var d=new Date(startDate); d.setDate(d.getDate()+idx); return d; }
+function isToday(idx) { var d=getDate(idx); return d.getDate()===now.getDate()&&d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); }
+
+// ── BUILD UI ──────────────────────────────────────────────────────────────────
+function buildUI() {
+  updateStats();
+  var main = document.getElementById('main');
+  main.innerHTML = '';
+  var lastWeek = -1;
+
+  PLAN.forEach(function(day, i) {
+    var week = Math.floor(i/7)+1;
+    if (week !== lastWeek) {
+      var t = document.createElement('div');
+      t.className = 'section-title';
+      t.textContent = 'Week ' + week;
+      main.appendChild(t);
+      lastWeek = week;
+    }
+    var d = getDate(i), done = isDone(i), today = isToday(i);
+    var card = document.createElement('div');
+    card.className = 'day-card'+(done?' is-done':'')+(day.rest?' is-rest':'')+(today?' is-today today-anchor':'');
+
+    var dateNum = d.getDate(), dayName = DAYS[d.getDay()];
+    var exListHTML = '';
+    var inputRowsHTML = '';
+    if (!day.rest) {
+      day.exercises.forEach(function(ex) {
+        var unit = (ex.name.indexOf('Hold')>=0||ex.name.indexOf('Stand')>=0) ? 's' : ' reps';
+        exListHTML += '<div class="ex-row"><span class="ex-icon">'+ex.icon+'</span><span class="ex-name">'+ex.name+'</span><span class="ex-target">Target: '+ex.target+unit+'</span></div>';
+        var val = (logs[i] && logs[i][ex.name] != null) ? logs[i][ex.name] : '';
+        var safeId = 'inp-'+i+'-'+ex.name.replace(/\s/g,'_');
+        inputRowsHTML += '<div class="input-row"><label class="input-label">'+ex.icon+' '+ex.name+'</label><input class="input-field" type="number" min="0" max="999" placeholder="'+ex.target+'" value="'+val+'" id="'+safeId+'"></div>';
+      });
+    }
+
+    var panelHTML = '';
+    if (!day.rest) {
+      var clearBtn  = done ? '<button class="btn-clear" onclick="clearLog('+i+')">Clear this day</button>' : '';
+      var loggedDiv = done ? '<div class="logged-summary">'+loggedSummary(i)+'</div>' : '';
+      panelHTML = '<div class="log-panel" id="panel-'+i+'"><div class="log-inner"><div class="exercises-list">'+exListHTML+'</div><div class="log-form"><div class="log-form-title">Log Your Reps</div><div class="input-rows">'+inputRowsHTML+'</div><button class="btn-save" onclick="saveLog('+i+')">SAVE DAY '+dateNum+'</button>'+clearBtn+loggedDiv+'</div></div></div>';
+    }
+
+    var todayPill = today ? '<span class="today-pill">TODAY</span>' : '';
+    var checkIcon = !day.rest ? '<div class="check-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></div>' : '';
+    var chevron   = !day.rest ? '<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>' : '';
+
+    card.innerHTML =
+      '<div class="day-header" onclick="toggle('+i+')">' +
+        '<div class="day-badge"><div class="day-num">'+dateNum+'</div><div class="day-name">'+dayName+'</div></div>' +
+        '<div class="day-info"><div class="day-title">'+day.label+'</div><div class="day-sub">'+(day.rest?'Rest &amp; Recover':summaryLine(i))+'</div></div>' +
+        '<div class="day-status">'+todayPill+checkIcon+chevron+'</div>' +
+      '</div>' + panelHTML;
+
+    main.appendChild(card);
+  });
+
+  // Auto-open today
+  var todayIdx = -1;
+  PLAN.forEach(function(_,i){ if(isToday(i)) todayIdx=i; });
+  if (todayIdx >= 0 && !PLAN[todayIdx].rest) {
+    var panel = document.getElementById('panel-'+todayIdx);
+    if (panel) {
+      panel.classList.add('open');
+      var ch = panel.closest('.day-card').querySelector('.chevron');
+      if (ch) ch.style.transform = 'rotate(180deg)';
+      setTimeout(function(){ panel.closest('.day-card').scrollIntoView({behavior:'smooth',block:'center'}); }, 300);
+    }
+  }
+}
+
+function toggle(i) {
+  if (PLAN[i].rest) return;
+  var panel = document.getElementById('panel-'+i);
+  var ch    = panel.closest('.day-card').querySelector('.chevron');
+  var open  = panel.classList.toggle('open');
+  if (ch) ch.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function isDone(i) { return !PLAN[i].rest && !!logs[i]; }
+
+function summaryLine(i) {
+  var day = PLAN[i];
+  if (!day.exercises) return '';
+  if (logs[i]) {
+    var total = day.exercises.reduce(function(s,ex){ return s+(logs[i][ex.name]||0); },0);
+    return '&#10003; ' + total + ' reps logged';
+  }
+  return day.exercises.map(function(e){ return e.name.split(' ')[0]; }).join(' &middot; ');
+}
+
+function loggedSummary(i) {
+  return PLAN[i].exercises.map(function(ex){ return ex.icon+' '+ex.name+': '+(logs[i][ex.name]||0); }).join('<br>');
+}
+
+function saveLog(i) {
+  var day=PLAN[i], entry={}, hasAny=false;
+  day.exercises.forEach(function(ex) {
+    var el = document.getElementById('inp-'+i+'-'+ex.name.replace(/\s/g,'_'));
+    var v  = parseInt(el.value)||0;
+    entry[ex.name]=v;
+    if(v>0) hasAny=true;
+  });
+  if(!hasAny){alert('Please log at least one rep!');return;}
+  logs[i]=entry;
+  storageSet('grind_logs',logs);
+  buildUI();
+}
+
+function clearLog(i) {
+  if(!confirm('Clear this day?'))return;
+  delete logs[i];
+  storageSet('grind_logs',logs);
+  buildUI();
+}
+
+function resetAll() {
+  if(!confirm('Reset ALL progress? This cannot be undone.'))return;
+  logs={};
+  storageSet('grind_logs',logs);
+  buildUI();
+}
+
+function updateStats() {
+  var workDays=PLAN.filter(function(d){return !d.rest;}).length;
+  var doneDays=Object.keys(logs).length;
+  var totalReps=0;
+  Object.values(logs).forEach(function(e){Object.values(e).forEach(function(v){totalReps+=v;});});
+
+  var streak=0, todayIdx=-1;
+  PLAN.forEach(function(_,i){if(isToday(i))todayIdx=i;});
+  if(todayIdx<0)todayIdx=PLAN.length-1;
+  for(var i=todayIdx;i>=0;i--){
+    if(PLAN[i].rest)continue;
+    if(logs[i])streak++;else break;
+  }
+
+  document.getElementById('statDone').textContent   = doneDays;
+  document.getElementById('statLeft').textContent   = Math.max(0,workDays-doneDays);
+  document.getElementById('statReps').textContent   = totalReps>999?(totalReps/1000).toFixed(1)+'k':totalReps;
+  document.getElementById('statStreak').textContent = streak;
+  var pct=Math.round(doneDays/workDays*100);
+  document.getElementById('progressPct').textContent=pct+'%';
+  document.getElementById('progressBar').style.width=pct+'%';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadNotifUI();
+buildUI();
+</script>
+</body>
+</html>
