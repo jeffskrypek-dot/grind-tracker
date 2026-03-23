@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRIND — Office Calisthenics Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: #222222;
+    --accent: #c8f135;
+    --accent2: #f1c135;
+    --text: #f0f0f0;
+    --muted: #666;
+    --rest: #1e2a1e;
+    --rest-text: #6dbf6d;
+    --done: #141f0a;
+    --done-border: #c8f135;
+    --red: #ff4444;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 0;
+  }
+  .logo-mark {
+    width: 40px;
+    height: 40px;
+    background: var(--accent);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .logo-mark svg { width: 22px; height: 22px; }
+  .logo-text { line-height: 1; }
+  .logo-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+  .logo-sub {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+  }
+  .month-label {
+    margin-left: auto;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: right;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 0 20px;
+  }
+  .stats-inner {
+    max-width: 600px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+  }
+  .stat {
+    padding: 14px 10px;
+    text-align: center;
+    border-right: 1px solid var(--border);
+  }
+  .stat:last-child { border-right: none; }
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    margin-top: 3px;
+  }
+
+  /* PROGRESS BAR */
+  .progress-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 14px 20px 0;
+  }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  .progress-bar-track {
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 3px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* MAIN */
+  main {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 20px 0;
+  }
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 3px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    margin-top: 24px;
+  }
+
+  /* DAY CARD */
+  .day-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .day-card.is-done {
+    background: var(--done);
+    border-color: var(--done-border);
+  }
+  .day-card.is-rest {
+    background: var(--rest);
+    border-color: #2a3d2a;
+  }
+  .day-card.is-today {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+  }
+  .day-header {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .day-badge {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid var(--border);
+  }
+  .day-card.is-today .day-badge {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .day-card.is-today .day-badge .day-num,
+  .day-card.is-today .day-badge .day-name { color: #000; }
+  .day-card.is-done .day-badge { background: #1e2d0a; border-color: var(--done-border); }
+  .day-card.is-rest .day-badge { background: #182418; border-color: #3a4d3a; }
+  .day-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .day-name {
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+  .day-info { flex: 1 }
+  .day-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .day-sub {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+    font-family: 'DM Mono', monospace;
+  }
+  .day-card.is-done .day-title { color: var(--accent); }
+  .day-card.is-rest .day-title { color: var(--rest-text); }
+  .day-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .check-icon {
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    background: transparent;
+  }
+  .day-card.is-done .check-icon {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .check-icon svg { width: 12px; height: 12px; opacity: 0; }
+  .day-card.is-done .check-icon svg { opacity: 1; }
+  .chevron {
+    width: 16px; height: 16px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .day-card.is-rest .chevron { opacity: 0; pointer-events: none; }
+
+  /* LOG PANEL */
+  .log-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.35s cubic-bezier(.4,0,.2,1);
+  }
+  .log-panel.open { max-height: 600px; }
+  .log-inner {
+    padding: 0 16px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .exercises-list { margin: 12px 0; }
+  .ex-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ex-row:last-child { border-bottom: none; }
+  .ex-icon {
+    font-size: 18px;
+    width: 28px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .ex-name {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .ex-target {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .log-form { margin-top: 12px; }
+  .log-form-title {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 10px;
+  }
+  .input-rows { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .input-label {
+    font-size: 12px;
+    flex: 1;
+    color: var(--text);
+  }
+  .input-field {
+    width: 72px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 7px 10px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-field:focus { border-color: var(--accent); }
+  .btn-save {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-bottom: 8px;
+  }
+  .btn-save:active { opacity: 0.8; }
+  .btn-clear {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    color: var(--red);
+    border: 1px solid var(--red);
+    border-radius: 10px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+  }
+  .logged-summary {
+    background: var(--done);
+    border: 1px solid var(--done-border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    color: var(--accent);
+    margin-top: 10px;
+    line-height: 1.7;
+  }
+
+  /* TODAY banner */
+  .today-pill {
+    font-size: 9px;
+    background: var(--accent);
+    color: #000;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+    font-weight: 600;
+  }
+
+  /* RESET */
+  .reset-btn {
+    display: block;
+    margin: 30px auto 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    padding: 8px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: 'DM Mono', monospace;
+    letter-spacing: 1px;
+  }
+
+  /* Scroll indicator */
+  .today-anchor { scroll-margin-top: 120px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 4v6m0 4v6M18 4v6m0 4v6M2 9h4m12 0h4M2 15h4m12 0h4M10 6l2 2-2 2M14 6l-2 2 2 2"/>
+      </svg>
+    </div>
+    <div class="logo-text">
+      <div class="logo-title">GRIND</div>
+      <div class="logo-sub">Office Calisthenics</div>
+    </div>
+    <div class="month-label">
+      <div id="monthName" style="font-size:13px;color:var(--text);font-weight:500;"></div>
+      <div id="yearName"></div>
+    </div>
+  </div>
+</header>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat"><div class="stat-num" id="statDone">0</div><div class="stat-label">Done</div></div>
+    <div class="stat"><div class="stat-num" id="statLeft">0</div><div class="stat-label">Left</div></div>
+    <div class="stat"><div class="stat-num" id="statReps">0</div><div class="stat-label">Total Reps</div></div>
+    <div class="stat"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Streak</div></div>
+  </div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-header">
+    <span>Monthly Progress</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar-track"><div class="progress-bar-fill" id="progressBar" style="width:0%"></div></div>
+</div>
+
+<main id="main"></main>
+<button class="reset-btn" onclick="resetAll()">⚠ Reset All Data</button>
+
+<script>
+// ── PLAN ──────────────────────────────────────────────────────────────────────
+// 28-day program. Rest days = no exercises. Each workout day has 2-4 exercises.
+const PLAN = [
+  // Week 1 – Build base
+  { label:"Push-Up Primer",    exercises:[{icon:"💪",name:"Push-Ups",target:40},{icon:"🪑",name:"Chair Dips",target:25},{icon:"🧘",name:"Plank Hold",target:40}] },
+  { label:"Core Ignition",     exercises:[{icon:"🦵",name:"Desk Squats",target:40},{icon:"⬆️",name:"Calf Raises",target:50},{icon:"🧘",name:"Hollow Body",target:35}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Upper Push",        exercises:[{icon:"💪",name:"Push-Ups",target:45},{icon:"🤲",name:"Wide Push-Ups",target:25},{icon:"🪑",name:"Chair Dips",target:30}] },
+  { label:"Leg Blast",         exercises:[{icon:"🦵",name:"Desk Squats",target:45},{icon:"🦅",name:"Lunges",target:30},{icon:"⬆️",name:"Calf Raises",target:55}] },
+  { label:"Core & Balance",    exercises:[{icon:"🧘",name:"Plank Hold",target:50},{icon:"🔄",name:"Side Plank (each)",target:35},{icon:"🦵",name:"Single-Leg Stand",target:45}] },
+  { label:"REST DAY",          rest:true },
+
+  // Week 2 – Build load
+  { label:"Push Power",        exercises:[{icon:"💪",name:"Push-Ups",target:25},{icon:"🤲",name:"Diamond Push-Ups",target:8},{icon:"🪑",name:"Chair Dips",target:15}] },
+  { label:"Squat Ladder",      exercises:[{icon:"🦵",name:"Desk Squats",target:30},{icon:"🦅",name:"Reverse Lunges",target:18},{icon:"⬆️",name:"Calf Raises",target:35}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Full Upper",        exercises:[{icon:"💪",name:"Push-Ups",target:30},{icon:"🤲",name:"Wide Push-Ups",target:15},{icon:"🪑",name:"Chair Dips",target:18},{icon:"🧘",name:"Plank Hold",target:40}] },
+  { label:"Legs & Core",       exercises:[{icon:"🦵",name:"Desk Squats",target:35},{icon:"🦅",name:"Lunges",target:20},{icon:"🧘",name:"Hollow Body",target:30}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Endurance Push",    exercises:[{icon:"💪",name:"Push-Ups",target:35},{icon:"🤲",name:"Diamond Push-Ups",target:10},{icon:"🪑",name:"Chair Dips",target:20}] },
+
+  // Week 3 – Intensity up
+  { label:"REST DAY",          rest:true },
+  { label:"Push Max",          exercises:[{icon:"💪",name:"Push-Ups",target:40},{icon:"🤲",name:"Wide Push-Ups",target:18},{icon:"🤲",name:"Diamond Push-Ups",target:12}] },
+  { label:"Leg Strength",      exercises:[{icon:"🦵",name:"Desk Squats",target:40},{icon:"🦅",name:"Reverse Lunges",target:22},{icon:"⬆️",name:"Calf Raises",target:40}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Upper + Core",      exercises:[{icon:"💪",name:"Push-Ups",target:45},{icon:"🪑",name:"Chair Dips",target:22},{icon:"🧘",name:"Plank Hold",target:50},{icon:"🔄",name:"Side Plank (each)",target:30}] },
+  { label:"Power Legs",        exercises:[{icon:"🦵",name:"Desk Squats",target:45},{icon:"🦅",name:"Lunges",target:24},{icon:"🧘",name:"Hollow Body",target:35}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Push Endurance",    exercises:[{icon:"💪",name:"Push-Ups",target:50},{icon:"🤲",name:"Wide Push-Ups",target:20},{icon:"🪑",name:"Chair Dips",target:25}] },
+
+  // Week 4 – Peak
+  { label:"REST DAY",          rest:true },
+  { label:"Peak Push",         exercises:[{icon:"💪",name:"Push-Ups",target:55},{icon:"🤲",name:"Diamond Push-Ups",target:15},{icon:"🤲",name:"Wide Push-Ups",target:22}] },
+  { label:"Peak Legs",         exercises:[{icon:"🦵",name:"Desk Squats",target:50},{icon:"🦅",name:"Reverse Lunges",target:26},{icon:"⬆️",name:"Calf Raises",target:45}] },
+  { label:"REST DAY",          rest:true },
+  { label:"Full Body Finish",  exercises:[{icon:"💪",name:"Push-Ups",target:60},{icon:"🪑",name:"Chair Dips",target:28},{icon:"🦵",name:"Desk Squats",target:50},{icon:"🧘",name:"Plank Hold",target:60}] },
+  { label:"REST DAY",          rest:true },
+  { label:"FINAL PUSH 🏆",     exercises:[{icon:"💪",name:"Push-Ups",target:75},{icon:"🤲",name:"Diamond Push-Ups",target:20},{icon:"🪑",name:"Chair Dips",target:30},{icon:"🧘",name:"Plank Hold",target:60}] },
+];
+
+// ── STORAGE ──────────────────────────────────────────────────────────────────
+function load(key, def) { try { const v=localStorage.getItem(key); return v!==null?JSON.parse(v):def; } catch(e){ return def; } }
+function save(key, val)  { localStorage.setItem(key, JSON.stringify(val)); }
+
+let logs = load('grind_logs', {}); // {dayIndex: {exName: repsDone, ...}}
+
+// ── DATES ─────────────────────────────────────────────────────────────────────
+const now = new Date();
+const todayDayOfMonth = now.getDate();
+// We anchor day 1 of plan to day 1 of current month
+const startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+document.getElementById('monthName').textContent = MONTHS[now.getMonth()];
+document.getElementById('yearName').textContent  = now.getFullYear();
+
+function getDate(planIdx) {
+  const d = new Date(startDate);
+  d.setDate(d.getDate() + planIdx);
+  return d;
+}
+function isToday(planIdx) {
+  const d = getDate(planIdx);
+  return d.getDate() === now.getDate() && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+// ── BUILD UI ──────────────────────────────────────────────────────────────────
+function buildUI() {
+  updateStats();
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+
+  let lastWeek = -1;
+  PLAN.forEach((day, i) => {
+    const week = Math.floor(i / 7) + 1;
+    if (week !== lastWeek) {
+      const t = document.createElement('div');
+      t.className = 'section-title';
+      t.textContent = `Week ${week}`;
+      main.appendChild(t);
+      lastWeek = week;
+    }
+
+    const d    = getDate(i);
+    const done = isDone(i);
+    const today = isToday(i);
+
+    const card = document.createElement('div');
+    card.className = 'day-card' + (done?' is-done':'') + (day.rest?' is-rest':'') + (today?' is-today':'');
+    if (today) card.classList.add('today-anchor');
+
+    const dateNum  = d.getDate();
+    const dayName  = DAYS[d.getDay()];
+
+    card.innerHTML = `
+      <div class="day-header" onclick="toggle(${i})">
+        <div class="day-badge">
+          <div class="day-num">${dateNum}</div>
+          <div class="day-name">${dayName}</div>
+        </div>
+        <div class="day-info">
+          <div class="day-title">${day.label}</div>
+          <div class="day-sub">${day.rest ? 'Rest & Recover' : summaryLine(i)}</div>
+        </div>
+        <div class="day-status">
+          ${today ? '<span class="today-pill">TODAY</span>' : ''}
+          ${!day.rest ? `<div class="check-icon"><svg viewBox="0 0 12 12" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1.5,6 4.5,9 10.5,3"/></svg></div>` : ''}
+          ${!day.rest ? `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>` : ''}
+        </div>
+      </div>
+      ${!day.rest ? `<div class="log-panel" id="panel-${i}">
+        <div class="log-inner">
+          <div class="exercises-list">${day.exercises.map(ex => `
+            <div class="ex-row">
+              <span class="ex-icon">${ex.icon}</span>
+              <span class="ex-name">${ex.name}</span>
+              <span class="ex-target">Target: ${ex.target}${ex.name.includes('Hold') || ex.name.includes('Stand') ? 's' : ' reps'}</span>
+            </div>`).join('')}
+          </div>
+          <div class="log-form">
+            <div class="log-form-title">Log Your Reps</div>
+            <div class="input-rows">
+              ${day.exercises.map(ex => {
+                const val = logs[i] && logs[i][ex.name] != null ? logs[i][ex.name] : '';
+                return `<div class="input-row">
+                  <label class="input-label">${ex.icon} ${ex.name}</label>
+                  <input class="input-field" type="number" min="0" max="999" placeholder="${ex.target}" value="${val}" id="inp-${i}-${ex.name.replace(/\s/g,'_')}">
+                </div>`;
+              }).join('')}
+            </div>
+            <button class="btn-save" onclick="saveLog(${i})">SAVE DAY ${dateNum}</button>
+            ${done?`<button class="btn-clear" onclick="clearLog(${i})">Clear this day</button>`:''}
+            ${done?`<div class="logged-summary">${loggedSummary(i)}</div>`:''}
+          </div>
+        </div>
+      </div>` : ''}
+    `;
+    main.appendChild(card);
+  });
+
+  // Auto-open today
+  const todayIdx = PLAN.findIndex((_, i) => isToday(i));
+  if (todayIdx >= 0 && !PLAN[todayIdx].rest) {
+    const panel = document.getElementById(`panel-${todayIdx}`);
+    if (panel) {
+      panel.classList.add('open');
+      const card = panel.closest('.day-card');
+      const ch = card.querySelector('.chevron');
+      if (ch) ch.style.transform = 'rotate(180deg)';
+      setTimeout(() => card.scrollIntoView({behavior:'smooth', block:'center'}), 300);
+    }
+  }
+}
+
+function toggle(i) {
+  if (PLAN[i].rest) return;
+  const panel = document.getElementById(`panel-${i}`);
+  const card  = panel.closest('.day-card');
+  const ch    = card.querySelector('.chevron');
+  const open  = panel.classList.toggle('open');
+  if (ch) ch.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+function isDone(i) {
+  if (PLAN[i].rest) return false;
+  return !!logs[i];
+}
+
+function summaryLine(i) {
+  const day = PLAN[i];
+  if (!day.exercises) return '';
+  const names = day.exercises.map(e => e.name.split(' ')[0]).join(' · ');
+  if (logs[i]) {
+    const total = day.exercises.reduce((sum, ex) => sum + (logs[i][ex.name] || 0), 0);
+    return `✓ ${total} reps logged`;
+  }
+  return names;
+}
+
+function loggedSummary(i) {
+  const day = PLAN[i];
+  if (!logs[i]) return '';
+  return day.exercises.map(ex => `${ex.icon} ${ex.name}: ${logs[i][ex.name] || 0}`).join('<br>');
+}
+
+function saveLog(i) {
+  const day = PLAN[i];
+  const entry = {};
+  let hasAny = false;
+  day.exercises.forEach(ex => {
+    const id  = `inp-${i}-${ex.name.replace(/\s/g,'_')}`;
+    const inp = document.getElementById(id);
+    const v   = parseInt(inp.value) || 0;
+    entry[ex.name] = v;
+    if (v > 0) hasAny = true;
+  });
+  if (!hasAny) { alert('Please log at least one rep!'); return; }
+  logs[i] = entry;
+  save('grind_logs', logs);
+  buildUI();
+}
+
+function clearLog(i) {
+  if (!confirm('Clear this day?')) return;
+  delete logs[i];
+  save('grind_logs', logs);
+  buildUI();
+}
+
+function resetAll() {
+  if (!confirm('Reset ALL progress? This cannot be undone.')) return;
+  logs = {};
+  save('grind_logs', logs);
+  buildUI();
+}
+
+function updateStats() {
+  const workDays = PLAN.filter(d => !d.rest).length;
+  const doneDays = Object.keys(logs).length;
+  const leftDays = workDays - doneDays;
+
+  // total reps
+  let totalReps = 0;
+  Object.values(logs).forEach(entry => {
+    Object.values(entry).forEach(v => totalReps += v);
+  });
+
+  // streak (consecutive done days ending at today)
+  let streak = 0;
+  let today = PLAN.findIndex((_, i) => isToday(i));
+  if (today < 0) today = PLAN.length - 1;
+  for (let i = today; i >= 0; i--) {
+    if (PLAN[i].rest) continue;
+    if (logs[i]) streak++;
+    else break;
+  }
+
+  document.getElementById('statDone').textContent  = doneDays;
+  document.getElementById('statLeft').textContent  = Math.max(0, leftDays);
+  document.getElementById('statReps').textContent  = totalReps > 999 ? (totalReps/1000).toFixed(1)+'k' : totalReps;
+  document.getElementById('statStreak').textContent = streak;
+
+  const pct = Math.round(doneDays / workDays * 100);
+  document.getElementById('progressPct').textContent = pct + '%';
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+buildUI();
+</script>
+</body>
+</html>
